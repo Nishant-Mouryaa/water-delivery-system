@@ -24,6 +24,8 @@ Thumbs.db
 .env.*
 *.local
 
+.serviceAccountKey.json
+
 # VSCode
 .vscode/
 
