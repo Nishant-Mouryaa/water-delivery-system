@@ -26,13 +26,28 @@ const OrderHistory = ({
 
     <View style={styles.orderHistoryContent}>
       {orderHistory.length > 0 ? (
-        <FlatList
-          data={orderHistory}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => <OrderCard item={item} index={index} />}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-        />
+        <>
+          {/* Order Cards Header */}
+          <View style={styles.orderCardsHeader}>
+            <View style={styles.headerSection}>
+              <Text style={styles.headerText}>Date</Text>
+            </View>
+            <View style={styles.headerSection}>
+              <Text style={styles.headerText}>Details</Text>
+            </View>
+            <View style={styles.headerSection}>
+              <Text style={styles.headerText}>Status</Text>
+            </View>
+          </View>
+          
+          <FlatList
+            data={orderHistory}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item, index }) => <OrderCard item={item} index={index} />}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
       ) : (
         <View style={styles.emptyState}>
           <Ionicons name="receipt-outline" size={48} color="#ccc" />
@@ -72,6 +87,28 @@ const styles = StyleSheet.create({
   },
   orderHistoryContent: {
     padding: 16,
+  },
+  orderCardsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  headerSection: {
+    flex: 1,
+  },
+  headerText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   emptyState: {
     alignItems: 'center',

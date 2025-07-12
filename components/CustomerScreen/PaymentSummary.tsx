@@ -41,7 +41,7 @@ const PaymentSummary = ({
 
     <TouchableOpacity style={styles.payNowButton} onPress={onPayNow}>
       <Ionicons name="card-outline" size={20} color="white" />
-      <Text style={styles.payNowButtonText}>Pay No</Text>
+      <Text style={styles.payNowButtonText}>Pay Now</Text>
     </TouchableOpacity>
   </View>
 );
