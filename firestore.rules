@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public read-only mappings for username/phone lookups
+    match /usernameMappings/{username} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    match /phoneMappings/{phone} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // User profile data - only accessible by the user themselves
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Subcollections under user documents
+      match /orders/{orderId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      request.resource.data.quantity is number &&
+                      request.resource.data.quantity > 0 &&
+                      request.resource.data.price is number &&
+                      request.resource.data.price > 0;
+      }
+      
+      match /payments/{paymentId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null && 
+                       request.auth.uid == userId &&
+                       request.resource.data.amount is number &&
+                       request.resource.data.amount > 0;
+      }
+    }
+
+    // Main orders collection - users can only access their own orders
+    match /orders/{orderId} {
+      allow read: if request.auth != null && 
+                  request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+                    request.auth.uid == request.resource.data.userId &&
+                    request.resource.data.quantity is number &&
+                    request.resource.data.quantity > 0 &&
+                    request.resource.data.price is number &&
+                    request.resource.data.price > 0 &&
+                    request.resource.data.totalAmount is number &&
+                    request.resource.data.totalAmount > 0;
+      allow update: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+    }
+
+    // Additional security for admin access if needed
+    match /admin/{document=**} {
+      allow read, write: if false; // Disabled by default - enable if admin functions needed
+    }
+
+    // Global settings that might be needed
+    match /settings/appConfig {
+      allow read: if true;
+      allow write: if false; // Admin only in production
+    }
+  }
+} 

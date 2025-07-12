@@ -1,7 +1,8 @@
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { getAuth, signOut } from 'firebase/auth';
-import React, { useState } from 'react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -11,47 +12,85 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-interface OrderHistoryData {
-  id: string;
-  dateOrdered: string;
-  received: boolean;
-  quantity: number;
-  price: number;
-}
+import { OrderHistoryItem, OrderService } from '../../components/OrderService';
+import { app, db } from '../../firebaseConfig';
 
 const CustomerScreen: React.FC = () => {
   const router = useRouter();
-  const auth = getAuth();
+  const auth = getAuth(app);
 
-  // Example user data
-  const [userName] = useState<string>('Nishant');
-  const [address] = useState<string>(
-    'Daffodil C/103, Yashwant Nagar, Virar West 401303'
-  );
-  const [contact] = useState<string>('8552964526');
-  const [paymentType] = useState<string>('Online');
+  // User data
+  const [userName, setUserName] = useState<string>('');
+  const [address, setAddress] = useState<string>('');
+  const [contact, setContact] = useState<string>('');
+  const [paymentType, setPaymentType] = useState<string>('');
+  const [userId, setUserId] = useState<string>('');
 
   // Quantity
   const [quantity, setQuantity] = useState<number>(1);
 
   // Month
-  const [selectedMonth, setSelectedMonth] = useState<string>('June');
+  const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toLocaleString('default', { month: 'long' }));
+  const [monthsAvailable, setMonthsAvailable] = useState<string[]>([]);
 
-  // Order history data (example)
-  const [orderHistory] = useState<OrderHistoryData[]>([
-    { id: '1', dateOrdered: '1 June 2025', received: true, quantity: 1, price: 35 },
-    { id: '2', dateOrdered: '1 June 2025', received: true, quantity: 2, price: 70 },
-    { id: '3', dateOrdered: '1 June 2025', received: true, quantity: 1, price: 35 },
-  ]);
+  // Order history data
+  const [orderHistory, setOrderHistory] = useState<OrderHistoryItem[]>([]);
 
-  // Financial info (example)
-  const [advancePaid] = useState<number>(100);
-  const [oldOutstanding] = useState<number>(100);
-  const [balance] = useState<number>(340);
+  // Financial info
+  const [advancePaid, setAdvancePaid] = useState<number>(0);
+  const [oldOutstanding, setOldOutstanding] = useState<number>(0);
+  const [balance, setBalance] = useState<number>(0);
 
   // Calculate total from orderHistory data
   const totalAmount = orderHistory.reduce((acc, cur) => acc + cur.price, 0);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (auth.currentUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            setUserName(userData.name || '');
+            setAddress(userData.address || '');
+            setContact(userData.phone || '');
+            setPaymentType(userData.paymentType || 'Online');
+            setUserId(auth.currentUser.uid);
+            
+            // Fetch financial info
+            setAdvancePaid(userData.advancePaid || 0);
+            setOldOutstanding(userData.oldOutstanding || 0);
+            setBalance(userData.balance || 0);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [auth.currentUser]);
+
+  useEffect(() => {
+    const fetchOrderHistory = async () => {
+      if (userId) {
+        try {
+          // First get available months
+          const months = await OrderService.getAvailableMonths(userId);
+          setMonthsAvailable(months);
+
+          // Then fetch orders for selected month
+          const currentYear = new Date().getFullYear();
+          const orders = await OrderService.getUserOrdersByMonth(userId, selectedMonth, currentYear);
+          setOrderHistory(orders);
+        } catch (error) {
+          console.error('Error fetching order history:', error);
+        }
+      }
+    };
+
+    fetchOrderHistory();
+  }, [userId, selectedMonth]);
 
   const increaseQuantity = () => setQuantity(q => q + 1);
   const decreaseQuantity = () => setQuantity(q => (q > 1 ? q - 1 : 1));
@@ -65,19 +104,59 @@ const CustomerScreen: React.FC = () => {
     }
   };
 
-  const handleOrderNow = () => {
-    Alert.alert('Order Placed', `Order placed for ${quantity} items`);
+  const handleOrderNow = async () => {
+    try {
+      if (!userId) return;
+      
+      const orderData = {
+        quantity,
+        price: 35, // Price per item
+        paymentMethod: paymentType,
+        advancePaid: 0,
+        notes: `Order placed by ${userName}`
+      };
+
+      await OrderService.createOrder(userId, orderData);
+      
+      // Update balance
+      const newBalance = balance + (quantity * 35);
+      await updateUserBalance(newBalance);
+      
+      Alert.alert('Order Placed', `Order placed for ${quantity} items`);
+      setQuantity(1);
+      
+      // Refresh order history
+      const currentYear = new Date().getFullYear();
+      const orders = await OrderService.getUserOrdersByMonth(userId, selectedMonth, currentYear);
+      setOrderHistory(orders);
+    } catch (error) {
+      console.error('Error placing order:', error);
+      Alert.alert('Error', 'Failed to place order. Please try again.');
+    }
+  };
+
+  const updateUserBalance = async (newBalance: number) => {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        balance: newBalance
+      });
+      setBalance(newBalance);
+    } catch (error) {
+      console.error('Error updating balance:', error);
+    }
   };
 
   const handleReminder = () => {
     Alert.alert('Reminder Set', 'You will be reminded about your order');
+    // Here you would typically integrate with a notification service
   };
 
   const handlePayNow = () => {
     Alert.alert('Payment', 'Payment initiated successfully');
+    // Here you would integrate with a payment gateway
   };
 
-  const renderOrderItem = ({ item }: { item: OrderHistoryData }) => (
+  const renderOrderItem = ({ item }: { item: OrderHistoryItem }) => (
     <View style={styles.orderRow}>
       <Text style={styles.orderCell}>{item.dateOrdered}</Text>
       <Text style={styles.orderCell}>{item.received ? 'Yes' : 'No'}</Text>
@@ -100,7 +179,7 @@ const CustomerScreen: React.FC = () => {
       <View style={styles.infoCard}>
         <Text style={styles.infoText}>
           <Text style={styles.label}>Name: </Text>
-          {userName} Mourya
+          {userName}
         </Text>
         <Text style={styles.infoText}>
           <Text style={styles.label}>Address: </Text>
@@ -147,16 +226,16 @@ const CustomerScreen: React.FC = () => {
       {/* Order History */}
       <View style={styles.orderHistoryContainer}>
         <View style={styles.orderHistoryHeaderRow}>
-          <Text style={styles.orderHistoryHeaderText}>June Order History</Text>
+          <Text style={styles.orderHistoryHeaderText}>{selectedMonth} Order History</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedMonth}
               onValueChange={(itemValue) => setSelectedMonth(itemValue)}
               style={styles.pickerStyle}
             >
-              <Picker.Item label="June" value="June" />
-              <Picker.Item label="July" value="July" />
-              <Picker.Item label="August" value="August" />
+              {monthsAvailable.map(month => (
+                <Picker.Item key={month} label={month} value={month} />
+              ))}
             </Picker>
           </View>
         </View>
@@ -174,6 +253,7 @@ const CustomerScreen: React.FC = () => {
           data={orderHistory}
           keyExtractor={(item) => item.id}
           renderItem={renderOrderItem}
+          ListEmptyComponent={<Text style={styles.emptyText}>No orders found for this month</Text>}
         />
       </View>
 
@@ -184,7 +264,7 @@ const CustomerScreen: React.FC = () => {
           Old Outstanding dues : {oldOutstanding}rs
         </Text>
         <Text style={styles.paymentInfoText}>Your Balance : {balance}rs</Text>
-        <Text style={styles.totalLabel}>Total : {totalAmount}</Text>
+        <Text style={styles.totalLabel}>Total : {totalAmount}rs</Text>
 
         <TouchableOpacity style={styles.payNowButton} onPress={handlePayNow}>
           <Text style={styles.payNowButtonText}>Pay Now</Text>
@@ -358,6 +438,11 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginVertical: 16,
+    color: '#666',
   },
 });
 
