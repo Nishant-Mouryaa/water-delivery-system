@@ -11,23 +11,20 @@ const QuantitySelector = ({
   onDecrease: () => void;
 }) => (
   <View style={styles.quantityCard}>
-    <Text style={styles.cardTitle}>Place New Order</Text>
-    <Text style={styles.quantityLabel}>Select quantity:</Text>
-    <View style={styles.quantityContainer}>
-      <TouchableOpacity style={styles.quantityButton} onPress={onDecrease}>
-        <Ionicons name="remove" size={24} color="white" />
-      </TouchableOpacity>
-      <View style={styles.quantityDisplay}>
+    <View style={styles.quantityRow}>
+      <Text style={styles.orderLabel}>Place Order</Text>
+      
+      <View style={styles.quantityContainer}>
+        <TouchableOpacity style={styles.quantityButton} onPress={onDecrease}>
+          <Ionicons name="remove" size={18} color="white" />
+        </TouchableOpacity>
         <Text style={styles.quantityText}>{quantity}</Text>
-        <Text style={styles.quantityUnit}>items</Text>
+        <TouchableOpacity style={styles.quantityButton} onPress={onIncrease}>
+          <Ionicons name="add" size={18} color="white" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.quantityButton} onPress={onIncrease}>
-        <Ionicons name="add" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
-    
-    <View style={styles.pricePreview}>
-      <Text style={styles.pricePreviewText}>Total: ₹{quantity * 35}</Text>
+      
+      <Text style={styles.priceText}>₹{quantity * 35}</Text>
     </View>
   </View>
 );
@@ -37,63 +34,54 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     marginHorizontal: 16,
     marginBottom: 16,
-    padding: 20,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  orderLabel: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#333',
-    marginBottom: 16,
-  },
-  quantityLabel: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 16,
+    flex: 1,
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
     justifyContent: 'center',
-    marginBottom: 16,
   },
   quantityButton: {
-    width: 48,
-    height: 48,
+    width: 32,
+    height: 32,
     backgroundColor: '#007AFF',
-    borderRadius: 24,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quantityDisplay: {
-    marginHorizontal: 32,
-    alignItems: 'center',
-  },
   quantityText: {
-    fontSize: 32,
+    fontSize: 18,
     fontWeight: '700',
     color: '#333',
+    marginHorizontal: 16,
+    minWidth: 24,
+    textAlign: 'center',
   },
-  quantityUnit: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  pricePreview: {
-    backgroundColor: '#f8f9fa',
-    padding: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  pricePreviewText: {
-    fontSize: 18,
+  priceText: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#007AFF',
+    flex: 1,
+    textAlign: 'right',
   },
 });
 

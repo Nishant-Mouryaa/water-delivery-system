@@ -15,7 +15,7 @@ const ActionButtons = ({
     </TouchableOpacity>
     <TouchableOpacity style={styles.reminderButton} onPress={onSetReminder}>
       <Ionicons name="notifications-outline" size={20} color="white" />
-      <Text style={styles.reminderButtonText}>Set Reminder</Text>
+      <Text style={styles.reminderButtonText}>Reminder</Text>
     </TouchableOpacity>
   </View>
 );
