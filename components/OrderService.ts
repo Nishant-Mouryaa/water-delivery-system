@@ -135,6 +135,8 @@ export class OrderService {
       const startDate = new Date(year, this.getMonthIndex(month), 1);
       const endDate = new Date(year, this.getMonthIndex(month) + 1, 0);
 
+      console.log('🔍 Querying orders for:', { userId, month, year, startDate, endDate });
+
       const q = query(
         collection(db, this.COLLECTION_NAME),
         where('userId', '==', userId),
@@ -144,14 +146,17 @@ export class OrderService {
       );
 
       const querySnapshot = await getDocs(q);
+      console.log('📊 Found orders in main collection:', querySnapshot.docs.length);
+      
       return querySnapshot.docs.map(doc => {
         const data = doc.data();
+        console.log('📋 Order data:', { id: doc.id, ...data });
         return {
           id: doc.id,
           dateOrdered: data.dateOrdered.toDate().toLocaleDateString(),
           received: data.received || false,
           quantity: data.quantity || 0,
-          price: data.price || 0,
+          price: data.totalAmount || 0, // Use totalAmount instead of price
           status: data.status || OrderStatus.PENDING,
           paymentStatus: data.paymentStatus || PaymentStatus.PENDING
         };
@@ -172,15 +177,22 @@ export class OrderService {
       );
 
       const querySnapshot = await getDocs(q);
+      console.log('📊 Total orders found for user:', querySnapshot.docs.length);
+      
       const months = new Set<string>();
       
       querySnapshot.docs.forEach(doc => {
-        const date = doc.data().dateOrdered.toDate();
+        const data = doc.data();
+        const date = data.dateOrdered.toDate();
         const monthName = date.toLocaleString('default', { month: 'long' });
+        const year = date.getFullYear();
+        console.log('📅 Order date:', date, 'Month:', monthName, 'Year:', year);
         months.add(monthName);
       });
 
-      return Array.from(months);
+      const monthArray = Array.from(months);
+      console.log('📋 Available months:', monthArray);
+      return monthArray;
     } catch (error) {
       console.error('Error fetching available months:', error);
       throw new Error('Failed to fetch available months');
