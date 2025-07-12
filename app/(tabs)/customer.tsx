@@ -45,28 +45,42 @@ const CustomerScreen: React.FC = () => {
   const totalAmount = orderHistory.reduce((acc, cur) => acc + cur.price, 0);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (auth.currentUser) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            setUserName(userData.name || '');
-            setAddress(userData.address || '');
-            setContact(userData.phone || '');
-            setPaymentType(userData.paymentType || 'Online');
-            setUserId(auth.currentUser.uid);
-            
-            // Fetch financial info
-            setAdvancePaid(userData.advancePaid || 0);
-            setOldOutstanding(userData.oldOutstanding || 0);
-            setBalance(userData.balance || 0);
-          }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        }
+  // Update the fetchUserData function in your useEffect hook
+const fetchUserData = async () => {
+  if (auth.currentUser) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        setUserName(userData.username || '');
+        
+        // Build the address string from the nested objects
+        const building = userData.buildingInfo || {};
+        const location = userData.locationInfo || {};
+        const addressString = [
+          building.name,
+          building.wing,
+          building.flatNo,
+          building.number,
+          location.locality,
+          location.area
+        ].filter(Boolean).join(', ');
+        
+        setAddress(addressString);
+        setContact(userData.mobile || '');
+        setPaymentType(userData.paymentType || 'Online');
+        setUserId(auth.currentUser.uid);
+        
+        // Fetch financial info
+        setAdvancePaid(userData.advancePaid || 0);
+        setOldOutstanding(userData.oldOutstanding || 0);
+        setBalance(userData.balance || 0);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    }
+  }
+};
 
     fetchUserData();
   }, [auth.currentUser]);
