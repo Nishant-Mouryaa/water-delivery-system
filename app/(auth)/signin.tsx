@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -85,7 +86,7 @@ const LoginScreen: React.FC = () => {
         
         {/* Username or Phone Input */}
         <View style={[styles.inputContainer, { marginTop: 30 }]}>
-          <Text style={styles.iconPlaceholder}>👤</Text>
+          <MaterialCommunityIcons name="account-outline" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Username or Phone Number"
@@ -99,7 +100,7 @@ const LoginScreen: React.FC = () => {
 
         {/* Password Input */}
         <View style={styles.inputContainer}>
-          <Text style={styles.iconPlaceholder}>🔒</Text>
+          <MaterialCommunityIcons name="lock-outline" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -163,10 +164,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: '#f9f9f9',
   },
-  iconPlaceholder: {
-    fontSize: 16,
+  icon: {
     marginRight: 8,
-    color: '#666',
   },
   input: {
     flex: 1,
