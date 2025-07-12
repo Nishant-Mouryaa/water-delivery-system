@@ -1,3 +1,4 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import MonthSelector from './MonthSelector';
@@ -32,11 +33,15 @@ const OrderHistory = ({
             <View style={styles.headerSection}>
               <Text style={styles.headerText}>Date</Text>
             </View>
+           
             <View style={styles.headerSection}>
-              <Text style={styles.headerText}>Details</Text>
+              <Text style={styles.headerText}>QTY</Text>
             </View>
             <View style={styles.headerSection}>
-              <Text style={styles.headerText}>Status</Text>
+              <Text style={styles.headerText}>Price</Text>
+            </View>
+            <View style={styles.headerSection}>
+              <Text style={styles.headerText}>Received</Text>
             </View>
           </View>
           
@@ -102,6 +107,7 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     flex: 1,
+    alignItems: 'center',
   },
   headerText: {
     fontSize: 12,

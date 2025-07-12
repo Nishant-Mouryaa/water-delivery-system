@@ -1,30 +1,42 @@
+
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
 const OrderCard = ({ item, index }: { item: any; index: number }) => (
   <View style={[styles.orderCard, index % 2 === 0 ? styles.evenCard : styles.oddCard]}>
     <View style={styles.orderContent}>
-      <View style={styles.leftSection}>
+      {/* Date */}
+      <View style={styles.cell}>
         <View style={styles.dateContainer}>
           <Ionicons name="calendar-outline" size={14} color="#666" />
           <Text style={styles.orderDate}>{item.dateOrdered}</Text>
         </View>
       </View>
       
-      <View style={styles.centerSection}>
-        <Text style={styles.quantity}>Qty: {item.quantity}</Text>
+   
+      
+      {/* Quantity */}
+      <View style={styles.cell}>
+        <Text style={styles.quantity}>{item.quantity}</Text>
+      </View>
+      
+      {/* Price */}
+      <View style={styles.cell}>
         <Text style={styles.amount}>₹{item.price}</Text>
       </View>
       
-      <View style={styles.rightSection}>
-        <View style={[
-          styles.statusBadge,
-          item.received ? styles.deliveredBadge : styles.pendingBadge
-        ]}>
-          <Ionicons 
-            name={item.received ? "checkmark-circle" : "time-outline"} 
-            size={12} 
-            color="white" 
+      {/* Status */}
+      <View style={styles.cell}>
+        <View
+          style={[
+            styles.statusBadge,
+            item.received ? styles.deliveredBadge : styles.pendingBadge,
+          ]}
+        >
+          <Ionicons
+            name={item.received ? 'checkmark-circle' : 'time-outline'}
+            size={12}
+            color="white"
           />
           <Text style={styles.statusText}>
             {item.received ? 'Delivered' : 'Pending'}
@@ -53,11 +65,11 @@ const styles = StyleSheet.create({
   },
   orderContent: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  leftSection: {
+  cell: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dateContainer: {
     flexDirection: 'row',
@@ -69,12 +81,8 @@ const styles = StyleSheet.create({
     color: '#333',
     marginLeft: 4,
   },
-  centerSection: {
-    flex: 1,
-    alignItems: 'center',
-  },
   quantity: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#666',
     marginBottom: 2,
   },
@@ -82,10 +90,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
-  },
-  rightSection: {
-    flex: 1,
-    alignItems: 'flex-end',
   },
   statusBadge: {
     flexDirection: 'row',
@@ -104,7 +108,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 10,
     fontWeight: '600',
-    marginLeft: 2,
+    marginLeft: 4,
   },
 });
 
